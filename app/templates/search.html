@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+
+{% block app_content %}
+
+{% for search in searches %}
+    {% with %}
+        {% set loop_revindex = loop.revindex %}
+        {% include "_answer.html" %}
+    {% endwith %}
+{% endfor %}
+{% endblock %}

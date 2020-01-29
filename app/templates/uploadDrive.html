@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Upload from Google Grive</h1>
+
+    {% for item in items %}
+        <div>
+            <form method="POST">
+                <p>{{ item['name'] }}</p>
+                <!-- <input type=submit name ="{{ item['id'] }}" value='Select!'> -->
+                <input class="btn btn-primary" type="submit"  name ="{{ item['id'] }}" value="Select">
+            </form>
+        </div>
+        
+    {% endfor %}
+{% endblock %}
