@@ -6,6 +6,7 @@ import requests
 from werkzeug.utils import secure_filename
 import base64
 import os
+from flask import flash
 
 wolfram_alpha_ID = os.environ.get("wolfram_alpha_ID")
 mathpix_id = os.environ.get("mathpix_id")
