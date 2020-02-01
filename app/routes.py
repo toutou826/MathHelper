@@ -1,4 +1,5 @@
 from flask import render_template, flash, redirect, url_for, request
+import flask
 from app.forms import LoginForm, RegistrationForm, UploadForm
 from flask_login import current_user, login_user, logout_user, login_required
 from app import app, db
@@ -8,14 +9,19 @@ import requests
 import sys
 import os.path
 from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import *
 from google.auth.transport.requests import Request
+import google.oauth2.credentials
 from app.func import get_answer, get_question, allowed_file
 import io
 from apiclient.http import MediaIoBaseDownload
 
-SCOPES = ['email', 'https://www.googleapis.com/auth/drive.readonly']
-
+SCOPES = "https://www.googleapis.com/auth/drive.readonly openid https://www.googleapis.com/auth/userinfo.email"
+# CLIENT_ID = os.environ.get("CLIENT_ID")
+# CLIENT_SECRET = os.environ.get("CLIENT_SECRET")
+# ACCESS_TOKEN_URI = "https://oauth2.googleapis.com/token"
+# AUTH_STATE_KEY = 'auth_state'
+# AUTH_TOKEN_KEY = 'auth_token'
 
 #home page where user do the search
 @app.route('/', methods=['GET', 'POST'])
@@ -78,6 +84,73 @@ def uploadDrive():
 
     return render_template('uploadDrive.html', title='Upload From Google Drive', items=items)
 
+# @app.route('/uploadDrive', methods=['GET', 'POST'])
+# def uploadDrive():
+#     #Get auth token
+#     # flow = InstalledAppFlow.from_client_secrets_file('credential.json', SCOPES)
+#     # creds = flow.run_local_server(port=5200)
+
+#     if request.method == 'POST':
+#         #Get the autho token from session and build credentials
+#         oauth2_tokens = flask.session[AUTH_TOKEN_KEY]
+#         creds = google.oauth2.credentials.Credentials(
+#                 oauth2_tokens['access_token'],
+#                 refresh_token=oauth2_tokens['refresh_token'],
+#                 client_id=CLIENT_ID,
+#                 client_secret=CLIENT_SECRET,
+#                 token_uri=ACCESS_TOKEN_URI)
+#         DRIVE = build('drive', 'v3', credentials=creds)
+#         #download the image, get the question and redirect to answer
+#         fileid = list(request.form.keys())[0]
+#         req = DRIVE.files().get_media(fileId=fileid)
+#         fh = io.BytesIO()
+#         downloader = MediaIoBaseDownload(fh, req)
+#         done = False
+#         while done is False:
+#             status, done = downloader.next_chunk()
+#         question = get_question(fh.getvalue(), True)
+#         return redirect(url_for('search', question = question))
+
+#     else:
+#         flow = Flow.from_client_secrets_file(
+#         'credential.json',
+#         scopes=SCOPES,
+#         redirect_uri=url_for("authFinal"))
+#         auth_url, state = flow.authorization_url(port=5200)
+#         flask.session[AUTH_STATE_KEY] = state
+
+#         return flask.redirect(auth_url, code=302)
+
+# @app.route('/authFinal', methods=['GET', 'POST'])
+# def authFinal():
+#     req_state = flask.request.args.get('state', default=None, type=None)
+#     #prevent CSRF attacks
+#     if req_state == flask.session[AUTH_STATE_KEY]:
+#         session = OAuth2Session(CLIENT_ID, CLIENT_SECRET,
+#                             scope=AUTHORIZATION_SCOPE,
+#                             state=flask.session[AUTH_STATE_KEY],
+#                             redirect_uri=AUTH_REDIRECT_URI)
+#         oauth2_tokens = session.fetch_token(authorization_response=flask.request.url)
+#         flask.session[AUTH_TOKEN_KEY] = oauth2_tokens
+#         creds = sesison.credentials
+#         #Get user info
+#         client =  build('oauth2', 'v2', credentials=creds)
+#         info = client.userinfo().get().execute()
+#         userid, useremail = info.get('id'), info.get('email')
+#         #If the user is not logged in, check if the user is in userbase
+#         if current_user.is_anonymous:
+#             user = User.query.filter_by(email=userid).first()
+#             #If user has an account, log user in
+#             if user:
+#                 login_user(user, True)
+#         #Get img files in the drive and display it for the user to choose
+#         DRIVE = build('drive', 'v3', credentials=creds)
+#         results = DRIVE.files().list(
+#             pageSize=10, fields="nextPageToken, files(id, name)").execute()
+#         items = results.get('files', [])
+#         items = [i for i in items if '.jpg' in i['name'] or '.png' in i['name']]
+
+#     return render_template('uploadDrive.html', title='Upload From Google Drive', items=items)
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
